@@ -34,7 +34,10 @@ char* processTpl(char* template, template_s data[], int dataSize) {
 	templateLen = strlen(template);
 	leftParamPos = strpos(template, "@(");
 
-	if (leftParamPos == -1) return template;
+	if (leftParamPos == -1) {
+		free(template);
+		return template;
+	}
 
 	rightParamPos = strpos(template + leftParamPos, ")");
 
@@ -42,7 +45,7 @@ char* processTpl(char* template, template_s data[], int dataSize) {
 	leftTemplate = substr(template, 0, leftParamPos - 1);
 	rightTemplate = substr(template, leftParamPos + rightParamPos + 1, templateLen);
 	newTemplate = malloc((strlen(leftTemplate) + strlen(param)) * sizeof(char));
-	printf("Alloc %d\n", (strlen(leftTemplate) + strlen(param)) * sizeof(char));
+//	printf("Alloc %d\n", (strlen(leftTemplate) + strlen(param)) * sizeof(char));
 	dataLen = dataSize / sizeof(template_s);
 
 	for (i = 0; i < dataLen; i++) {
@@ -67,7 +70,7 @@ int strpos(char* haystack, char* needle) {
 char* substr(char* source, int start, int end) {
 	int size = end - start + 1;
 	char* output = malloc(sizeof(char) * size);
-	printf("Alloc %d\n", sizeof(char) * size);
+//	printf("Alloc %d\n", sizeof(char) * size);
 
 	memcpy(output, source + start, size);
 
