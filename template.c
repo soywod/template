@@ -9,9 +9,10 @@ typedef struct {
 
 int strpos(char* haystack, char* needle);
 char* substr(char* source, int start, int end);
-char* processTpl(char* template, template_s data[], int dataSize);
+char* processTemplate(char* src, template_s data[], int dataSize);
 
 int main() {
+	char* html;
 	template_s data[] = {
 		{
 			"user",
@@ -20,59 +21,88 @@ int main() {
 		{
 			"lol",
 			"yeah"
+		},
+		{
+			"prout",
+			"ppppapapappapap"
 		}
 	};
 
-	char* html = processTpl("coucoooo @(user) la forme ? yeah @(user)@(lol) !", data, sizeof(data));
-	printf("%s", html);
+	html = processTemplate("coucoooo @(lol) yayaya @(user) - @(prout) # @(yop)", data, sizeof(data));
+	printf("%s\n", html);
+	free(html);
 }
 
-char* processTpl(char* template, template_s data[], int dataSize) {
-	int templateLen, leftParamPos, rightParamPos, dataLen, i;
-	char *param, *leftTemplate, *rightTemplate, *newTemplate;
+char* processTemplate(char* template, template_s data[], int dataSize) {
+	int htmlPartLen, paramLen, nextTemplatePartLen, templateLen, dataLen;
+	int leftParamPos, rightParamPos, i;
+	char *htmlPart, *param, *templatePart, *nextTemplatePart, *finalHtml;
 
 	templateLen = strlen(template);
 	leftParamPos = strpos(template, "@(");
 
+	// If no param found, stop recursion
 	if (leftParamPos == -1) {
-		free(template);
-		return template;
+		finalHtml = malloc(templateLen + 1);
+		return strcpy(finalHtml, template);
 	}
 
 	rightParamPos = strpos(template + leftParamPos, ")");
 
+	// Extract all parts of the template
+	htmlPart = substr(template, 0, leftParamPos - 1);
 	param = substr(template, leftParamPos + 2, leftParamPos + rightParamPos - 1);
-	leftTemplate = substr(template, 0, leftParamPos - 1);
-	rightTemplate = substr(template, leftParamPos + rightParamPos + 1, templateLen);
-	newTemplate = malloc((strlen(leftTemplate) + strlen(param)) * sizeof(char));
-//	printf("Alloc %d\n", (strlen(leftTemplate) + strlen(param)) * sizeof(char));
+	templatePart = substr(template, leftParamPos + rightParamPos + 1, templateLen);
+
+	// Process the next template part (recursion)
+	nextTemplatePart = processTemplate(templatePart, data, dataSize);
+
+	htmlPartLen = strlen(htmlPart);
+	nextTemplatePartLen = strlen(nextTemplatePart);
 	dataLen = dataSize / sizeof(template_s);
 
+	// Replace param by the value given in data
 	for (i = 0; i < dataLen; i++) {
 		if (*param == *(data[i].name)) {
-			param = data[i].value;
+			param = realloc(param, strlen(data[i].value) + 1);
+			strcpy(param, data[i].value);
 			break;				
 		}
 	}
 
-	strcpy(newTemplate, leftTemplate);
-	strcat(newTemplate, param);
-	
-	return strcat(newTemplate, processTpl(rightTemplate, data, dataSize));
+	paramLen = strlen(param);
+	finalHtml = malloc(htmlPartLen + paramLen + nextTemplatePartLen + 1);
+
+	strcpy(finalHtml, htmlPart);
+	strcat(finalHtml, param);
+	strcat(finalHtml, nextTemplatePart);
+
+	free(htmlPart);
+	free(param);
+	free(templatePart);
+	free(nextTemplatePart);
+
+	return finalHtml;
 }
 
 int strpos(char* haystack, char* needle) {
-	char* str = strstr(haystack, needle);
+	char* str;
+
+	str = strstr(haystack, needle);
 
 	return (str == NULL ? -1 : str - haystack);
 }
 
 char* substr(char* source, int start, int end) {
-	int size = end - start + 1;
-	char* output = malloc(sizeof(char) * size);
-//	printf("Alloc %d\n", sizeof(char) * size);
+	int size;
+	char* output;
 
-	memcpy(output, source + start, size);
+	size = end - start + 1;
+	output = malloc(size + 1);
+
+	output = memcpy(output, source + start, size);
+	output[size] = '\0';
 
 	return output;
 }
+
