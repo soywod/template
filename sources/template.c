@@ -2,61 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct {
-	char* name;
-	char* value;
-} DataTplItem;
+#include "../headers/template.h"
 
-/*
-typedef struct {
-	DataTplItem *list;	
-	int (*set)(char *key, char *value);
-	char *(*get)(char *key);
-} DataTpl;
-*/
-
-int strpos(char* haystack, char* needle);
-char* substr(char* source, int start, int end);
-char* processTemplate(char* src, DataTplItem data[], int dataSize);
-char *getFileContent(char *path);
-/*
-char *dataTplGet(char *key) {
-	return "lol";
-}
-
-DataTpl *newDataTpl() {
-	DataTpl *a = malloc(sizeof(DataTpl));
-	a->get = &dataTplGet;
-	return a;
-}
-*/
-
-int main() {
-	char *html, *tpl;
-	DataTplItem data[] = {
-		{
-			"title",
-			"My first template"
-		},
-		{
-			"content",
-			"LOLOLOLOLOL"
-		}
-	};
-
-	tpl = getFileContent("views/index.tpl.html");
-	html = processTemplate(tpl, data, sizeof(data));
-	printf("%s\n", html);
-	free(html);
-	free(tpl);
-
-	/*
-	DataTpl *test = newDataTpl();
-	printf("%s", test->get(""));
-	*/
-}
-
-char *getFileContent(char *path) {
+char *getFileContent(char *path)
+{
 	FILE *file;
 	char *content;
 	int size;
@@ -73,7 +22,7 @@ char *getFileContent(char *path) {
 	return content;
 }
 
-char* processTemplate(char* template, DataTplItem data[], int dataSize) {
+char* processTemplate(char* template, struct TemplateData data[], int dataSize) {
 	int htmlPartLen, paramLen, nextTemplatePartLen, templateLen, dataLen;
 	int leftParamPos, rightParamPos, i;
 	char *htmlPart, *param, *templatePart, *nextTemplatePart, *finalHtml;
@@ -99,7 +48,7 @@ char* processTemplate(char* template, DataTplItem data[], int dataSize) {
 
 	htmlPartLen = strlen(htmlPart);
 	nextTemplatePartLen = strlen(nextTemplatePart);
-	dataLen = dataSize / sizeof(DataTplItem);
+	dataLen = dataSize / sizeof(struct TemplateData);
 
 	// Replace param by the value given in data
 	for (i = 0; i < dataLen; i++) {
@@ -145,4 +94,3 @@ char* substr(char* source, int start, int end) {
 
 	return output;
 }
-
