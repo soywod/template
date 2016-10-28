@@ -5,35 +5,75 @@
 typedef struct {
 	char* name;
 	char* value;
-} template_s;
+} DataTplItem;
+
+/*
+typedef struct {
+	DataTplItem *list;	
+	int (*set)(char *key, char *value);
+	char *(*get)(char *key);
+} DataTpl;
+*/
 
 int strpos(char* haystack, char* needle);
 char* substr(char* source, int start, int end);
-char* processTemplate(char* src, template_s data[], int dataSize);
+char* processTemplate(char* src, DataTplItem data[], int dataSize);
+char *getFileContent(char *path);
+/*
+char *dataTplGet(char *key) {
+	return "lol";
+}
+
+DataTpl *newDataTpl() {
+	DataTpl *a = malloc(sizeof(DataTpl));
+	a->get = &dataTplGet;
+	return a;
+}
+*/
 
 int main() {
-	char* html;
-	template_s data[] = {
+	char *html, *tpl;
+	DataTplItem data[] = {
 		{
-			"user",
-			"Paul"
+			"title",
+			"My first template"
 		},
 		{
-			"lol",
-			"yeah"
-		},
-		{
-			"prout",
-			"ppppapapappapap"
+			"content",
+			"LOLOLOLOLOL"
 		}
 	};
 
-	html = processTemplate("coucoooo @(lol) yayaya @(user) - @(prout) # @(yop)", data, sizeof(data));
+	tpl = getFileContent("views/index.tpl.html");
+	html = processTemplate(tpl, data, sizeof(data));
 	printf("%s\n", html);
 	free(html);
+	free(tpl);
+
+	/*
+	DataTpl *test = newDataTpl();
+	printf("%s", test->get(""));
+	*/
 }
 
-char* processTemplate(char* template, template_s data[], int dataSize) {
+char *getFileContent(char *path) {
+	FILE *file;
+	char *content;
+	int size;
+
+	file = fopen(path, "r");
+	fseek (file, 0, SEEK_END);
+	size = ftell(file);
+	fseek (file, 0, SEEK_SET);
+	content = malloc(size + 1);
+	fread(content, 1, size, file);
+	fclose(file);
+	content[size] = '\0';
+
+	return content;
+}
+
+char* processTemplate(char* template, DataTplItem data[], int dataSize) {
 	int htmlPartLen, paramLen, nextTemplatePartLen, templateLen, dataLen;
 	int leftParamPos, rightParamPos, i;
 	char *htmlPart, *param, *templatePart, *nextTemplatePart, *finalHtml;
@@ -59,7 +99,7 @@ char* processTemplate(char* template, template_s data[], int dataSize) {
 
 	htmlPartLen = strlen(htmlPart);
 	nextTemplatePartLen = strlen(nextTemplatePart);
-	dataLen = dataSize / sizeof(template_s);
+	dataLen = dataSize / sizeof(DataTplItem);
 
 	// Replace param by the value given in data
 	for (i = 0; i < dataLen; i++) {
