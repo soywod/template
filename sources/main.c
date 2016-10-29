@@ -6,26 +6,18 @@
 
 int main()
 {
-	char *html, *tpl;
-	struct TemplateData data[] =
-	{
-		{
-			"title",
-			"My first template"
-		},
-		{
-			"content",
-			"LOLOLOLOLOL"
-		}
-	
-	};
-	
-	tpl = getFileContent("../views/index.tpl.html");
-	html = processTemplate(tpl, data, sizeof(data));
-	printf("%s\n", html);
-	free(html);
-	free(tpl);
+	Template* tpl;
+	char* html;
+
+	tpl = tplOpen("../views/index.tpl.html");
+
+	tplAddParam("name", "lol", tpl);
+	tplAddParam("title", "yeah", tpl);
+
+	html = tplRender(tpl);
+
+	printf("%s", html);
+	tplClose(tpl);
 
 	return 0;
 }
-

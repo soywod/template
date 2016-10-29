@@ -1,26 +1,13 @@
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 
-struct TemplateData
-{
-	char* name;
-	char* value;
-};
+typedef struct Template Template;
+struct TemplateParam;
 
-struct Template
-{	
-	struct TemplateData* data;
-	char* (*get)(char* key);
-	void (*set)(char* key, char* val);
-};
-
-// New API
-
-
-// Old API
-int strpos(char* haystack, char* needle);
-char* substr(char* source, int start, int end);
-char* processTemplate(char* src, struct TemplateData data[], int dataSize);
-char *getFileContent(char *path);
+Template* tplOpen(char* path);
+void tplAddParam(char* key, char* val, Template* tpl);
+char* tplGetParam(char* key, Template* tpl);
+char* tplRender(Template* tpl);
+void tplClose(Template* tpl);
 
 #endif
