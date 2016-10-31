@@ -6,7 +6,6 @@ struct AssocItem;
 
 Assoc* assocNew();
 void assocAdd(char* key, char* val, Assoc* assoc);
-void assocSet(char* key, char* val, Assoc* assoc);
 char* assocGet(char* key, Assoc* assoc);
 void assocClose(Assoc* assoc);
 

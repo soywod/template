@@ -44,22 +44,6 @@ void assocAdd(char* key, char* val, Assoc* assoc)
 	assoc->size++;
 }
 
-void assocSet(char* key, char* val, Assoc* assoc)
-{
-	int i;
-
-	for (i = 0; i < assoc->size; i++)
-	{
-		if (strcmp((assoc->items + i)->key, key) == 0)
-		{
-			(assoc->items + i)->val = val;
-			return;
-		}
-	}
-	
-	return assocAdd(key, val, assoc);
-}
-
 char* assocGet(char* key, Assoc* assoc)
 {
 	int i;

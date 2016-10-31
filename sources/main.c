@@ -3,8 +3,8 @@
 #include <string.h>
 
 //#include "../headers/template.h"
-#include "../headers/server.h"
-#include "../headers/assoc.h"
+//#include "../headers/server.h"
+#include "../headers/request.h"
 
 int main()
 {
@@ -33,17 +33,8 @@ int main()
 	"Accept-Encoding: gzip, deflate, sdch\r\n"
 	"Accept-Language: fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4\r\n\r\nlol";
 
-	Assoc* assoc;
-	char* lol;
+	Request* req = reqNew(http);
+	reqClose(req);
 
-	assoc = assocNew();
-
-	assocAdd("lol", "yeah", assoc);
-
-	lol = assocGet("lolol", assoc);
-	printf("%s -", lol);
-
-	assocClose(assoc);
-	
 	return 0;
 }
