@@ -26,7 +26,7 @@ Assoc* assocNew()
 	return assoc;
 }
 
-void assocAdd(char* key, char* val, Assoc* assoc)
+void assocAdd(char* key, void* val, Assoc* assoc)
 {
 	if (assoc->size == 0)
 	{
@@ -44,7 +44,7 @@ void assocAdd(char* key, char* val, Assoc* assoc)
 	assoc->size++;
 }
 
-char* assocGet(char* key, Assoc* assoc)
+void* assocGet(char* key, Assoc* assoc)
 {
 	int i;
 

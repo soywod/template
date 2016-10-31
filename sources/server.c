@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -6,12 +7,15 @@
 #include <sys/socket.h>
 #include <stdio.h>
 
+#define BUFFER_SIZE 20
+
 int srvListen()
 {
-	int sockfd, newsockfd, sockopt, bindfd, clilen, pid, readfd;
-	char buffer[1024];
+	int sockfd, newsockfd, sockopt, bindfd, clilen, pid, readfd, i;
+	char buffer[BUFFER_SIZE];
 	char clip[INET_ADDRSTRLEN];
 	struct sockaddr_in servaddr, cliaddr;
+	char* output;
 
 	sockopt = 1;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -62,15 +66,26 @@ int srvListen()
 		if (pid == 0)
 		{
 			close(sockfd);
-			memset(&buffer, 0, 1024);
-			readfd = read(newsockfd, buffer, 1024 - 1);
+			output = malloc(1);
+			*output = '\0';
+			memset(&buffer, 0, BUFFER_SIZE);
+			i = 0;
 
-			if (readfd < 0) 
+			for (i = 0; readfd == BUFFER_SIZE - 1; i++, readfd = read(newsockfd, buffer, BUFFER_SIZE - 1))
+
+			while((readfd = read(newsockfd, buffer, BUFFER_SIZE - 1)) == BUFFER_SIZE - 1);
 			{
-				perror("Error reading data");
-				return 1;
-			}
-			printf("%s\n", buffer);
+				output = realloc(output, (BUFFER_SIZE * (++i)) + 1);
+				strcat(output, buffer);
+				printf("%d - %d - %s", readfd, BUFFER_SIZE, buffer);
+			} 
+
+			printf("%d - %d - %s", readfd, BUFFER_SIZE, output);
+		//	if (readfd < 0) 
+		//	{
+		//		perror("Error reading data");
+		//		return 1;
+		//	}
 
 			inet_ntop(AF_INET, &(cliaddr.sin_addr), clip, INET_ADDRSTRLEN);
 
