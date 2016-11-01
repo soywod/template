@@ -27,6 +27,7 @@ int srvListen()
 	}
 
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt);
+
 	memset(&servaddr, 0, sizeof(servaddr));
 
 	servaddr.sin_family = AF_INET;
@@ -66,21 +67,26 @@ int srvListen()
 		if (pid == 0)
 		{
 			close(sockfd);
-			output = malloc(1);
-			*output = '\0';
-			memset(&buffer, 0, BUFFER_SIZE);
-			i = 0;
+			//output = malloc(1);
+			//*output = '\0';
+			//memset(&buffer, 0, BUFFER_SIZE);
+			//i = 0;
 
-			for (i = 0; readfd == BUFFER_SIZE - 1; i++, readfd = read(newsockfd, buffer, BUFFER_SIZE - 1))
+			//for (i = 0; readfd == BUFFER_SIZE - 1; i++, readfd = read(newsockfd, buffer, BUFFER_SIZE - 1))
 
-			while((readfd = read(newsockfd, buffer, BUFFER_SIZE - 1)) == BUFFER_SIZE - 1);
+			//while((readfd = read(newsockfd, buffer, BUFFER_SIZE - 1)) == BUFFER_SIZE - 1);
+			//{
+			//	output = realloc(output, (BUFFER_SIZE * (++i)) + 1);
+			//	strcat(output, buffer);
+			//	printf("%d - %d - %s", readfd, BUFFER_SIZE, buffer);
+			//} 
+			do
 			{
-				output = realloc(output, (BUFFER_SIZE * (++i)) + 1);
-				strcat(output, buffer);
-				printf("%d - %d - %s", readfd, BUFFER_SIZE, buffer);
-			} 
-
-			printf("%d - %d - %s", readfd, BUFFER_SIZE, output);
+				readfd = recv(newsockfd, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
+				printf("%d\n", readfd);
+			} while(readfd > 0 && readfd == BUFFER_SIZE - 1);
+			printf("FINISHED");
+			
 		//	if (readfd < 0) 
 		//	{
 		//		perror("Error reading data");
