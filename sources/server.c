@@ -7,15 +7,31 @@
 #include <sys/socket.h>
 #include <stdio.h>
 
-#define BUFFER_SIZE 20
+#include "../headers/server.h"
 
-int srvListen()
+typedef struct Server
+{
+	int port;
+	void (*handler)(int sockfd, char* ip, char* data);
+} Server;
+
+Server* srvNew(int port, void (*handler)(int sockfd, char* ip, char* data))
+{
+	Server* srv;
+
+	srv = malloc(sizeof(Server));
+	srv->port = port;
+	srv->handler = handler;
+
+	return srv;
+}
+
+void srvListen(Server* srv)
 {
 	int sockfd, newsockfd, sockopt, bindfd, clilen, pid, readfd, i;
-	char buffer[BUFFER_SIZE];
 	char clip[INET_ADDRSTRLEN];
 	struct sockaddr_in servaddr, cliaddr;
-	char* output;
+	char *buffer, *output;
 
 	sockopt = 1;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -23,7 +39,7 @@ int srvListen()
 	if (sockfd < 0)
 	{
 		perror("Error opening the socket");
-		return 1;
+		return;
 	}
 
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt);
@@ -32,14 +48,14 @@ int srvListen()
 
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = INADDR_ANY;
-	servaddr.sin_port = htons(8080);
+	servaddr.sin_port = htons(srv->port);
 
 	bindfd = bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
 	if (bindfd < 0)
 	{
 		perror("Error binding socket");
-		return 1;
+		return;
 	}
 
 	listen(sockfd, 5);
@@ -49,11 +65,12 @@ int srvListen()
 	while(1)
 	{
 		newsockfd = accept(sockfd, (struct sockaddr *) &cliaddr, (socklen_t *) &clilen);
+		i = 0;
 
 		if (newsockfd < 0)
 		{
 			perror("Error accepting request");
-			return 1;
+			return;
 		}
 
 		pid = fork();
@@ -61,46 +78,39 @@ int srvListen()
 		if (pid < 0)
 		{
 			perror("Error forking process");
-			return 1;
+			return;
 		}
 
 		if (pid == 0)
 		{
 			close(sockfd);
-			//output = malloc(1);
-			//*output = '\0';
-			//memset(&buffer, 0, BUFFER_SIZE);
-			//i = 0;
+			buffer = malloc(SRV_BUFF_SIZE + 1);
+			memset(buffer, 0, SRV_BUFF_SIZE + 1);
 
-			//for (i = 0; readfd == BUFFER_SIZE - 1; i++, readfd = read(newsockfd, buffer, BUFFER_SIZE - 1))
-
-			//while((readfd = read(newsockfd, buffer, BUFFER_SIZE - 1)) == BUFFER_SIZE - 1);
-			//{
-			//	output = realloc(output, (BUFFER_SIZE * (++i)) + 1);
-			//	strcat(output, buffer);
-			//	printf("%d - %d - %s", readfd, BUFFER_SIZE, buffer);
-			//} 
-			do
+			while((readfd = recv(newsockfd, buffer, SRV_BUFF_SIZE - 1, MSG_DONTWAIT)) > 0 && readfd == SRV_BUFF_SIZE - 1)
 			{
-				readfd = recv(newsockfd, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
-				printf("%d\n", readfd);
-			} while(readfd > 0 && readfd == BUFFER_SIZE - 1);
-			printf("FINISHED");
-			
-		//	if (readfd < 0) 
-		//	{
-		//		perror("Error reading data");
-		//		return 1;
-		//	}
+				if (i++ == 0)
+				{
+					output = malloc(SRV_BUFF_SIZE * i + 1);
+					strcpy(output, buffer);
+				}
+				else
+				{
+					output = realloc(output, (SRV_BUFF_SIZE * i + 1));
+					strcat(output, buffer);
+				}
+
+				memset(buffer, 0, SRV_BUFF_SIZE + 1);
+			}
 
 			inet_ntop(AF_INET, &(cliaddr.sin_addr), clip, INET_ADDRSTRLEN);
+			srv->handler(newsockfd, clip, output);
 
 			//send(newsockfd, reply, strlen(reply), 0);
 
 			close(newsockfd);
 
-			return 0;
-
+			return;
 		}
 		else
 		{
@@ -108,5 +118,10 @@ int srvListen()
 		}
 	}
 
-	return 0;
+	return;
+}
+
+void srvClose(Server* srv)
+{
+	free(srv);
 }
